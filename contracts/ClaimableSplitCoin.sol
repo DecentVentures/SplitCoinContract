@@ -44,6 +44,15 @@ contract ClaimableSplitCoin is SplitCoin {
     return unclaimed;
   }
 
+  function transfer(address to, uint ppm) public {
+    if(getClaimableBalance() > 0) {
+      claim();
+    }
+    super.transfer(to, ppm);
+  }
+
+
+
   function pay() public payable {
     if(isClaimable) {
       deposits.push(msg.value);
