@@ -5,11 +5,10 @@ var splitcoinJson = require('../build/contracts/ClaimableSplitCoin.json');
 /*var TestRPC = require("ethereumjs-testrpc");*/
 /*web3.setProvider(TestRPC.provider());*/
 
-contract('SplitCoin', (accounts) => {
-  let splitCoinContractAddr = null;
+contract('SplitCoinFactory', (accounts) => {
   let splitCoinSplits = [];
 
-  it("should be able to deploy a SplitCoin via factory", () => {
+  it("should deploy a contract with two splits", () => {
     let factory = null;
     return SplitCoinFactory.deployed()
       .then((splitFactory) => {
@@ -23,11 +22,9 @@ contract('SplitCoin', (accounts) => {
         return factory.contracts(accounts[0], 0);
       })
       .then((splitCoinAddr) => {
-        splitCoinContractAddr = splitCoinAddr;
         return web3.eth.contract(splitcoinJson.abi).at(splitCoinAddr);
       })
       .then(async (splitCoin) => {
-        deployedSplitcoin = splitCoin;
         assert.equal(splitCoin != null, true, "The splitCoin should be defined");
         return Promise.all([await splitCoin.splits(1), await splitCoin.splits(2)])
       })
@@ -47,35 +44,5 @@ contract('SplitCoin', (accounts) => {
           assert.equal(splitData.ppm > 400000, true, "The user should get almost half");
         }
       });
-  });
-  it("should send the ether to 3 accounts, dev, acc1, acc2", (done) => {
-    let sendAmount = web3.toWei(1, "ether");
-    return web3.eth.sendTransaction({
-      from: accounts[3],
-      to: splitCoinContractAddr,
-      value: sendAmount
-    }, (err, result) => {
-      let splitEvent = SplitCoin.at(splitCoinContractAddr).SplitTransfer({
-        fromBlock: "latest",
-        to: "pending"
-      });
-      let found = [];
-      let sumSent = 0;
-      let filter = splitEvent.watch((err, eventRes) => {
-        console.log(`${eventRes.event}: ${eventRes.args.amount} to ${eventRes.args.to}`);
-        sumSent += eventRes.args.amount.toNumber();
-        for (let split of splitCoinSplits) {
-          if (eventRes.args.to == split.to && found.indexOf(split.to) == -1) {
-            found.push(split.to);
-          }
-        }
-        if (found.length == 2) {
-          assert.equal(found.length, 2, "Should fire off transfers for the two users");
-          assert.equal(sumSent, sendAmount, "The total amount of Ether should be accounted for");
-          filter.stopWatching();
-          done();
-        }
-      });
-    });
   });
 });

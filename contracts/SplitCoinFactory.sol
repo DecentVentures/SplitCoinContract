@@ -1,15 +1,16 @@
 pragma solidity ^0.4.15;
-import "./SplitCoin.sol";
+import "./ClaimableSplitCoin.sol";
 
 contract SplitCoinFactory {
-	mapping(address => address[]) public contracts;
+  mapping(address => address[]) public contracts;
   event Deployed (
     address _deployed
   );
-	function make(address[] users, uint[] ppms, address refer) public returns (address) {
-		SplitCoin sc = new SplitCoin(users, ppms, refer);
-		contracts[msg.sender].push(sc);
+  function make(address[] users, uint[] ppms, address refer, bool claimable) public returns (address) {
+    address sc = 0x0;
+    sc = new ClaimableSplitCoin(users, ppms, refer, claimable);
+    contracts[msg.sender].push(sc);
     Deployed(sc);
-		return sc;
-	}
+    return sc;
+  }
 }
