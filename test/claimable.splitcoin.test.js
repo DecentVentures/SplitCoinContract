@@ -48,6 +48,16 @@ contract('ClaimableSplitCoin', (accounts) => {
       });
   });
 
+  it("should be cheap to send to this contract", () => {
+    let amount = web3.eth.estimateGas({
+      from: web3.eth.accounts[0],
+      to: splitCoinContractAddr,
+      amount: web3.toWei(1, "ether")
+    });
+    console.log('ClaimableSplitCoin gas estimate : ', amount);
+    assert.equal(amount < 50000, true);
+  });
+
   it("should have a claimable balance for dev, acc1, acc2 equal to 1 ether", (done) => {
     let splitContract = SplitCoin.at(splitCoinContractAddr);
     let sendAmount = web3.toWei(1, "ether");
