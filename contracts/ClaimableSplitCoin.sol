@@ -6,7 +6,7 @@ contract ClaimableSplitCoin is SplitCoin {
   mapping(address => uint) lastUserClaim;
   uint[] deposits;
 
-  bool isClaimable = false;
+  bool public isClaimable = false;
 
   function ClaimableSplitCoin(address[] members, uint[] ppms, address refer, bool claimable)
   SplitCoin(members, ppms, refer) public {
@@ -18,30 +18,38 @@ contract ClaimableSplitCoin is SplitCoin {
     _;
   }
 
-  function claim() claimableMode public {
-    uint splitIndex = userSplit[msg.sender];
-    if(splits[splitIndex].to == msg.sender) {
-      uint lastClaimIndex = lastUserClaim[msg.sender];
+  function claimFor(address user) claimableMode public {
+    uint splitIndex = userSplit[user];
+    if(splits[splitIndex].to != 0x0) {
+      uint lastClaimIndex = lastUserClaim[user];
       for(uint depositIndex = lastClaimIndex; depositIndex < deposits.length; depositIndex++) {
         uint value = deposits[depositIndex] * splits[splitIndex].ppm / 1000000.00;
-        lastUserClaim[msg.sender] = depositIndex + 1;
+        lastUserClaim[user] = depositIndex + 1;
         splits[splitIndex].to.transfer(value);
         SplitTransfer(splits[splitIndex].to, value, this.balance);
       }
     }
   }
 
-  function getClaimableBalance() claimableMode public view returns (uint balance) {
-    uint splitIndex = userSplit[msg.sender];
-    uint lastClaimIndex = lastUserClaim[msg.sender];
+  function claim() claimableMode public {
+    return claimFor(msg.sender);
+  }
+
+  function getClaimableBalanceFor(address user) claimableMode public view returns (uint balance) {
+    uint splitIndex = userSplit[user];
+    uint lastClaimIndex = lastUserClaim[user];
     uint unclaimed = 0;
-    if(splits[splitIndex].to == msg.sender) {
+    if(splits[splitIndex].to == user) {
       for(uint depositIndex = lastClaimIndex; depositIndex < deposits.length; depositIndex++) {
         uint value = deposits[depositIndex] * splits[splitIndex].ppm / 1000000.00;
         unclaimed += value;
       }
     }
     return unclaimed;
+  }
+
+  function getClaimableBalance() claimableMode public view returns (uint balance) {
+    return getClaimableBalanceFor(msg.sender);
   }
 
   function transfer(address to, uint ppm) public {
