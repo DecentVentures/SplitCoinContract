@@ -52,7 +52,7 @@ contract('SplitCoinFactory', (accounts) => {
     return SplitCoinFactory.deployed()
       .then((splitFactory) => {
         factory = splitFactory;
-        return factory.generateReferralAddress();
+        return factory.generateReferralAddress('0x0');
       })
       .then((tx) => {
         return factory.referralContracts(accounts[0]);

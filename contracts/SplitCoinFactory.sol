@@ -4,32 +4,33 @@ import "./ClaimableSplitCoin.sol";
 contract SplitCoinFactory {
   mapping(address => address[]) public contracts;
   mapping(address => uint) public referralContracts;
+  mapping(address => address) public referredBy;
   event Deployed (
     address _deployed
   );
 
   function make(address[] users, uint[] ppms, address refer, bool claimable) public returns (address) {
-    address sc = 0x0;
-    address referContract = 0x0;
-    if(refer != 0x0 && contracts[refer].length > 0) {
+    address referContract = referredBy[msg.sender];
+    if(refer != 0x0 && referContract == 0x0 && contracts[refer].length > 0 ) {
       uint referContractIndex = referralContracts[refer] - 1;
       if(referContractIndex >= 0) {
         referContract = contracts[refer][referContractIndex];
+        referredBy[msg.sender] = referContract;
       }
     }
-    sc = new ClaimableSplitCoin(users, ppms, referContract, claimable);
+    address sc = new ClaimableSplitCoin(users, ppms, referContract, claimable);
     contracts[msg.sender].push(sc);
     Deployed(sc);
     return sc;
   }
 
-  function generateReferralAddress() public returns (address) {
+  function generateReferralAddress(address refer) public returns (address) {
     uint[] memory ppms = new uint[](1);
     address[] memory users = new address[](1);
     ppms[0] = 1000000;
     users[0] = msg.sender;
 
-    address referralContract = make(users, ppms, 0x0, true);
+    address referralContract = make(users, ppms, refer, true);
     if(referralContract != 0x0) {
       uint index = contracts[msg.sender].length;
       referralContracts[msg.sender] = index;
