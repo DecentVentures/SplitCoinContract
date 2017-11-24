@@ -25,7 +25,7 @@ contract ClaimableSplitCoin is SplitCoin {
       for(uint depositIndex = lastClaimIndex; depositIndex < deposits.length; depositIndex++) {
         uint value = deposits[depositIndex] * splits[splitIndex].ppm / 1000000.00;
         lastUserClaim[user] = depositIndex + 1;
-        splits[splitIndex].to.transfer(value);
+        splits[splitIndex].to.call.gas(50000)(value);
         SplitTransfer(splits[splitIndex].to, value, this.balance);
       }
     }
