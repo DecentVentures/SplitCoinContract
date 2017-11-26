@@ -5,9 +5,12 @@ contract SplitCoinFactory {
   mapping(address => address[]) public contracts;
   mapping(address => uint) public referralContracts;
   mapping(address => address) public referredBy;
+  mapping(address => address[]) public referrals;
+  address[] public deployed;
   event Deployed (
     address _deployed
   );
+
 
   function make(address[] users, uint[] ppms, address refer, bool claimable) public returns (address) {
     address referContract = referredBy[msg.sender];
@@ -16,10 +19,12 @@ contract SplitCoinFactory {
       if(referContractIndex >= 0) {
         referContract = contracts[refer][referContractIndex];
         referredBy[msg.sender] = referContract;
+        referrals[refer].push(msg.sender);
       }
     }
     address sc = new ClaimableSplitCoin(users, ppms, referContract, claimable);
     contracts[msg.sender].push(sc);
+    deployed.push(sc);
     Deployed(sc);
     return sc;
   }
