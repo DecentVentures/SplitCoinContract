@@ -47,7 +47,7 @@ contract SplitCoin {
   function pay () public payable {
     for(uint index = 0; index < splits.length; index++) {
       uint value = (msg.value) * splits[index].ppm / 1000000.00;
-      splits[index].to.transfer(value);
+      require(splits[index].to.call.gas(60000).value(value)());
       SplitTransfer(splits[index].to, value, this.balance);
     }
   }

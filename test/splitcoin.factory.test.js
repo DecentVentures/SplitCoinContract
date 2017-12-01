@@ -45,4 +45,38 @@ contract('SplitCoinFactory', (accounts) => {
         }
       });
   });
+
+
+  it("Should be able to generate a referal address", () => {
+    let factory = null;
+    return SplitCoinFactory.deployed()
+      .then((splitFactory) => {
+        factory = splitFactory;
+        return factory.generateReferralAddress('0x0');
+      })
+      .then((tx) => {
+        return factory.referralContracts(accounts[0]);
+      })
+      .then(async(index) => {
+        let indexNum = index.toFixed();
+        let splitCoinAddr = await factory.contracts(accounts[0], indexNum - 1);
+        return web3.eth.contract(splitcoinJson.abi).at(splitCoinAddr);
+      })
+      .then(async (splitCoin) => {
+        assert.equal(splitCoin != null, true, "The splitCoin should be defined");
+        return splitCoin.splits(1);
+      })
+      .then((split) => {
+        let splitData = {
+          to: '',
+          ppm: 0
+        };
+        splitData.to = split[0];
+        splitData.ppm = split[1].toFixed();
+        assert.equal(split != null, true, "There should be a split at index 1");
+        assert.equal(splitData.to, accounts[0], "The contract should have the user at index 1");
+        assert.equal(splitData.ppm < 1000000, true, "The user should get less than the whole amount (dev_fee)");
+        assert.equal(splitData.ppm > 900000, true, "The user should get more than 90%");
+      });
+  });
 });
