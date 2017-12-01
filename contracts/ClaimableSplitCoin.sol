@@ -56,7 +56,12 @@ contract ClaimableSplitCoin is SplitCoin {
     if(getClaimableBalance() > 0) {
       claim();
     }
-    super.transfer(to, ppm);
+    uint splitIndex = userSplit[msg.sender];
+    if(splitIndex > 0 && splits[splitIndex].to == msg.sender && splits[splitIndex].ppm > ppm) {
+      lastUserClaim[to] = lastUserClaim[msg.sender];
+      splits[splitIndex].ppm -= ppm;
+      addSplit(Split({to: to, ppm: ppm}));
+    }
   }
 
   function pay() public payable {
