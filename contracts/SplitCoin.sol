@@ -40,14 +40,6 @@ contract SplitCoin {
     }
   }
 
-  function transfer(address to, uint ppm) public {
-    uint splitIndex = userSplit[msg.sender];
-    if(splitIndex > 0 && splits[splitIndex].to == msg.sender && splits[splitIndex].ppm > ppm) {
-      splits[splitIndex].ppm -= ppm;
-      addSplit(Split({to: to, ppm: ppm}));
-    }
-  }
-
   function () public payable {
     pay();
   }
