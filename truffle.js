@@ -11,14 +11,12 @@ module.exports = {
       port: 8545,
       network_id: "1",
       gas: 3000000,
-      gasPrice: 1000000000
     },
     srvmain: {
       host: "192.168.0.12",
       port: 8545,
       network_id: "1",
       gas: 3000000,
-      gasPrice: 1000000000
     },
     ropsten: {
       host: "localhost",
