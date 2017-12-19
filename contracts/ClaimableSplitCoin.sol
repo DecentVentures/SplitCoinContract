@@ -19,16 +19,11 @@ contract ClaimableSplitCoin is SplitCoin {
   }
 
   function claimFor(address user) claimableMode public {
+    uint sum = getClaimableBalanceFor(user);
     uint splitIndex = userSplit[user];
-    if(splits[splitIndex].to != 0x0) {
-      uint lastClaimIndex = lastUserClaim[user];
-      for(uint depositIndex = lastClaimIndex; depositIndex < deposits.length; depositIndex++) {
-        uint value = deposits[depositIndex] * splits[splitIndex].ppm / 1000000.00;
-        lastUserClaim[user] = depositIndex + 1;
-        require(splits[splitIndex].to.call.gas(60000).value(value)());
-        SplitTransfer(splits[splitIndex].to, value, this.balance);
-      }
-    }
+    lastUserClaim[user] = deposits.length;
+    require(splits[splitIndex].to.call.gas(60000).value(sum)());
+    SplitTransfer(splits[splitIndex].to, sum, this.balance);
   }
 
   function claim() claimableMode public {
@@ -53,11 +48,11 @@ contract ClaimableSplitCoin is SplitCoin {
   }
 
   function transfer(address to, uint ppm) public {
-    if(getClaimableBalance() > 0) {
-      claim();
-    }
     uint splitIndex = userSplit[msg.sender];
     if(splitIndex > 0 && splits[splitIndex].to == msg.sender && splits[splitIndex].ppm > ppm) {
+      claimFor(to);
+      claimFor(msg.sender);
+      // neither user can have a pending balance to use transfer
       lastUserClaim[to] = lastUserClaim[msg.sender];
       splits[splitIndex].ppm -= ppm;
       addSplit(Split({to: to, ppm: ppm}));

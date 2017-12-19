@@ -58,6 +58,23 @@ contract('ClaimableSplitCoin', (accounts) => {
     assert.equal(amount < 50000, true);
   });
 
+  it("should be able to transfer some of the ownership", (done) => {
+    let splitContract = SplitCoin.at(splitCoinContractAddr);
+    let ownershipBefore = Number(splitCoinSplits[0].ppm);
+    let ownership2Before = Number(splitCoinSplits[1].ppm);
+    console.log(ownershipBefore, ownership2Before);
+    splitContract
+      .transfer(accounts[1], ownershipBefore / 2, {
+        from: accounts[0]
+      })
+      .then(() => splitContract.splits(1))
+      .then((split) => assert.equal(Number(split[1].toFixed()), ownershipBefore / 2))
+      .then(() => splitContract.splits(2))
+      .then((split) => assert.equal(Number(split[1].toFixed()), ownership2Before + ownershipBefore / 2))
+      .then(() => done());
+  });
+
+
   it("should have a claimable balance for dev, acc1, acc2 equal to 1 ether", (done) => {
     let splitContract = SplitCoin.at(splitCoinContractAddr);
     let sendAmount = web3.toWei(1, "ether");
@@ -115,4 +132,7 @@ contract('ClaimableSplitCoin', (accounts) => {
         from: accounts[1]
       }));
   });
+
+
+
 });

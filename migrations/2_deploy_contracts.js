@@ -1,11 +1,43 @@
 var SplitCoinFactory = artifacts.require("./SplitCoinFactory.sol");
 var SplitCoin = artifacts.require("./SplitCoin.sol");
 module.exports = function(deployer) {
-	/*
-	 *let accounts = web3.eth.accounts;
-   *const MILLION = 1000000;
-   *let half = MILLION / 2;
-	 */
-	deployer.deploy(SplitCoinFactory, {gas: '0x2DC6C0', gasPrice: '0x3B9ACA00'});
-  //deployer.deploy(SplitCoin, [accounts[0], accounts[1]], [half, half], "0x0");
+
+  // 1 GWEI
+  /*
+   *deployer.deploy(SplitCoinFactory, {
+   *  gas: '0x2DC6C0',
+   *  gasPrice: '0x3B9ACA00'
+   *});
+   */
+
+  // 6 GWEI
+  deployer.deploy(SplitCoinFactory, {
+    gas: '0x2DC6C0',
+    gasPrice: '0x165A0BC00'
+  });
+
+  // 10 GWEI
+  /*
+   *deployer.deploy(SplitCoinFactory, {
+   *  gas: '0x2DC6C0',
+   *  gasPrice: '0x2540BE400'
+   *});
+   */
+
+  // 15 GWEI
+  /*
+   *deployer.deploy(SplitCoinFactory, {
+   *  gas: '0x2DC6C0',
+   *  gasPrice: '0x37E11D600'
+   *});
+   */
+
+  // 20 GWEI
+  /*
+   *deployer.deploy(SplitCoinFactory, {
+   *  gas: '0x2DC6C0',
+   *  gasPrice: '0x4A817C800'
+   *});
+   */
+
 };
