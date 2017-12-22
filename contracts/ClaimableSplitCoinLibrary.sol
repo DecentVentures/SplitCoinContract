@@ -1,5 +1,4 @@
 pragma solidity ^0.4.17;
-import "./SplitCoin.sol";
 
 library CSCLib {
 
@@ -57,6 +56,10 @@ library CSCLib {
 		}
 	}
 
+	function getSplit(CSCStorage storage self, uint index) internal view returns (Split) {
+		return self.splits[index];
+	}
+
 	function getSplitCount(CSCStorage storage self) internal view returns (uint count) {
 		return self.splits.length;
 	}
@@ -95,8 +98,9 @@ library CSCLib {
 	}
 
 	function transfer(CSCStorage storage self, address to, uint ppm) internal {
-		require(self.userSplit[msg.sender] == getSplitCount(self));
-		require(self.userSplit[to] == getSplitCount(self));
+		require(getClaimableBalanceFor(self, msg.sender) == 0.0);
+		require(getClaimableBalanceFor(self, to) == 0.0);
+		require(ppm > 0);
 		// neither user can have a pending balance to use transfer
 		uint splitIndex = self.userSplit[msg.sender];
 		if(splitIndex > 0 && self.splits[splitIndex].to == msg.sender && self.splits[splitIndex].ppm >= ppm) {
@@ -114,6 +118,3 @@ library CSCLib {
 		}
 	}
 }
-
-
-

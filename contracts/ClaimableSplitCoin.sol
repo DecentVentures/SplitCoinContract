@@ -23,22 +23,22 @@ contract ClaimableSplitCoin {
 		return csclib.developer;
 	}
 
-	function splits(uint index) public view returns(CSCLib.Split) {
-		return csclib.splits[index];
-	}
-
 	function getSplitCount() public view returns (uint count) {
 		return csclib.getSplitCount();
+	}
+
+	function splits(uint index) public view returns (address to, uint ppm) {
+		return (csclib.splits[index].to, csclib.splits[index].ppm);
 	}
 
 	event SplitTransfer(address to, uint amount, uint balance);
 
 	function claimFor(address user) public {
-		return csclib.claimFor(user);
+		csclib.claimFor(user);
 	}
 
 	function claim() public {
-		return csclib.claimFor(msg.sender);
+		csclib.claimFor(msg.sender);
 	}
 
 	function getClaimableBalanceFor(address user) public view returns (uint balance) {
@@ -50,6 +50,7 @@ contract ClaimableSplitCoin {
 	}
 
 	function transfer(address to, uint ppm) public {
-		return csclib.transfer(to, ppm);
+		csclib.transfer(to, ppm);
 	}
 }
+

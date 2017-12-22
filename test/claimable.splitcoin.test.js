@@ -115,7 +115,9 @@ contract('ClaimableSplitCoin', (accounts) => {
       for (let split of splitCoinSplits) {
         if (eventRes.args.to == split.to && found.indexOf(split.to) == -1) {
           found.push(split.to);
-        }
+        } else {
+					console.log('Looking for ', split.to, ' saw: ', eventRes.args.to);
+				}
       }
       if (found.length == 2) {
         assert.equal(true, true, "Should fire off transfers for the two users");
@@ -123,6 +125,7 @@ contract('ClaimableSplitCoin', (accounts) => {
         done();
       }
     });
+		console.log('Waiting for two transfers...');
 
     splitContract
       .claim({
@@ -132,7 +135,4 @@ contract('ClaimableSplitCoin', (accounts) => {
         from: accounts[1]
       }));
   });
-
-
-
 });
