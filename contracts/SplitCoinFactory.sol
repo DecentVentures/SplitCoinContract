@@ -16,7 +16,7 @@ contract SplitCoinFactory {
     address referContract = referredBy[msg.sender];
     if(refer != 0x0 && referContract == 0x0 && contracts[refer].length > 0 ) {
       uint referContractIndex = referralContracts[refer] - 1;
-      if(referContractIndex >= 0) {
+      if(referContractIndex >= 0 && refer != msg.sender) {
         referContract = contracts[refer][referContractIndex];
         referredBy[msg.sender] = referContract;
         referrals[refer].push(msg.sender);
