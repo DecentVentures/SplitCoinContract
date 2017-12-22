@@ -59,18 +59,29 @@ contract('ClaimableSplitCoin', (accounts) => {
   });
 
   it("should be able to transfer some of the ownership", (done) => {
-    let splitContract = web3.eth.contract(splitcoinJson.abi).at(splitCoinContractAddr);
+    let splitContract = SplitCoin.at(splitCoinContractAddr);
     let ownershipBefore = Number(splitCoinSplits[0].ppm);
     let ownership2Before = Number(splitCoinSplits[1].ppm);
-    console.log(ownershipBefore, ownership2Before);
+		let ownershipAfter = null;
+		let ownership2After = null;
+    console.log('User 1 Ownership Before transfer: ', ownershipBefore);
+    console.log('User 2 Ownership Before transfer: ', ownership2Before);
     splitContract
       .transfer(accounts[1], ownershipBefore / 2, {
         from: accounts[0]
       })
       .then(() => splitContract.splits(1))
-      .then((split) => assert.equal(Number(split[1].toFixed()), ownershipBefore / 2))
+      .then((split) => {
+				ownershipAfter = Number(split[1].toFixed());
+				assert.equal(ownershipAfter, ownershipBefore / 2);
+			})
       .then(() => splitContract.splits(2))
-      .then((split) => assert.equal(Number(split[1].toFixed()), ownership2Before + ownershipBefore / 2))
+      .then((split) => {
+				ownership2After = Number(split[1].toFixed());
+			 	assert.equal(ownership2After, ownership2Before + ownershipBefore / 2)
+			})
+			.then(()=> console.log('User 1 Ownership Before transfer: ', ownershipBefore, 'Ownership After Transfer: ', ownershipAfter))
+			.then(()=> console.log('User 2 Ownership Before transfer: ', ownership2Before, 'Ownership After Transfer: ', ownership2After))
       .then(() => done());
   });
 
