@@ -1,6 +1,6 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
 
-library SplitCoinLibrary {
+library SCLib {
 
 
 	struct Split {
@@ -12,7 +12,6 @@ library SplitCoinLibrary {
 		address developer;
 		uint dev_fee;
 		uint refer_fee;
-
 		Split[] splits;
 		mapping(address => uint) userSplit;
 	}
@@ -44,7 +43,7 @@ library SplitCoinLibrary {
 		}
 	}
 
-	function pay(SplitStorage storage self) public {
+	function pay(SplitStorage storage self) internal {
 		for(uint index = 0; index < self.splits.length; index++) {
 			uint value = (msg.value) * self.splits[index].ppm / 1000000.00;
 			require(self.splits[index].to.call.gas(60000).value(value)());
@@ -52,9 +51,10 @@ library SplitCoinLibrary {
 		}
 	}
 
-	function getSplitCount(SplitStorage storage self) public view returns (uint count) {
+	function getSplitCount(SplitStorage storage self) internal view returns (uint count) {
 		return self.splits.length;
 	}
+
 
 	event SplitTransfer(address to, uint amount, uint balance);
 }

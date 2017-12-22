@@ -1,13 +1,7 @@
-pragma solidity ^0.4.15;
-
+pragma solidity ^0.4.18;
 import "./SplitCoinLibrary.sol";
 
 contract SplitCoin {
-
-	struct Split {
-		address to;
-		uint ppm;
-	}
 
 	using SCLib for SCLib.SplitStorage;
 
@@ -24,9 +18,14 @@ contract SplitCoin {
 		lib.pay();
 	}
 
+	function developer() public view returns(address) {
+		return lib.developer;
+	}
+
 	function splits(uint index) public view returns(SCLib.Split) {
 		return lib.splits[index];
 	}
+
 	function getSplitCount() public view returns (uint count) {
 		return lib.getSplitCount();
 	}

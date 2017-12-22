@@ -1,37 +1,38 @@
-pragma solidity ^0.4.15;
-import "./SplitCoin.sol";
+pragma solidity ^0.4.18;
+import "./ClaimableSplitCoinLibrary.sol";
 
 contract ClaimableSplitCoin is SplitCoin {
 
-	using ClaimableSplitCoinLibrary for ClaimableSplitCoinLibrary.ClaimableSplitStorage;
-	ClaimableSplitStorage lib;
+	using CSCLib for CSCLib.CSCStorage;
 
-  function ClaimableSplitCoin(address[] members, uint[] ppms, address refer, bool claimable) public {
-		lib.init(members, ppms, refer, claimable);
-  }
+	CSCLib.CSCStorage csclib;
 
-  function claimFor(address user) claimableMode public {
-		return lib.claimFor(user);
-  }
+	function ClaimableSplitCoin(address[] members, uint[] ppms, address refer, bool claimable) SplitCoin(members, ppms, refer) public {
+		csclib.isClaimable = claimable;
+		csclib.lib = lib;
+	}
 
-  function claim() claimableMode public {
-    return lib.claimFor(msg.sender);
-  }
+	function () public payable {
+		csclib.pay();
+	}
 
-  function getClaimableBalanceFor(address user) claimableMode public view returns (uint balance) {
-    return lib.getClaimableBalanceFor(user);
-  }
+	function claimFor(address user) public {
+		return csclib.claimFor(user);
+	}
 
-  function getClaimableBalance() claimableMode public view returns (uint balance) {
-    return lib.getClaimableBalanceFor(msg.sender);
-  }
+	function claim() public {
+		return csclib.claimFor(msg.sender);
+	}
 
-  function transfer(address to, uint ppm) public {
-		return lib.transfer(to, ppm);
-  }
+	function getClaimableBalanceFor(address user) public view returns (uint balance) {
+		return csclib.getClaimableBalanceFor(user);
+	}
 
-  function pay() public payable {
-		return lib.pay();
-  }
+	function getClaimableBalance() public view returns (uint balance) {
+		return csclib.getClaimableBalanceFor(msg.sender);
+	}
+
+	function transfer(address to, uint ppm) public {
+		return csclib.transfer(to, ppm);
+	}
 }
-

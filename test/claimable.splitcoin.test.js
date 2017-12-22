@@ -59,7 +59,7 @@ contract('ClaimableSplitCoin', (accounts) => {
   });
 
   it("should be able to transfer some of the ownership", (done) => {
-    let splitContract = SplitCoin.at(splitCoinContractAddr);
+    let splitContract = web3.eth.contract(splitcoinJson.abi).at(splitCoinContractAddr);
     let ownershipBefore = Number(splitCoinSplits[0].ppm);
     let ownership2Before = Number(splitCoinSplits[1].ppm);
     console.log(ownershipBefore, ownership2Before);
