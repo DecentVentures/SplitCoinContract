@@ -1,11 +1,11 @@
 pragma solidity ^0.4.18;
-import "./SplitCoinLibrary.sol";
+import "./ClaimableSplitCoinLibrary.sol";
 
 contract SplitCoin {
 
-	using SCLib for SCLib.SplitStorage;
+	using CSCLib for CSCLib.CSCStorage;
 
-	SCLib.SplitStorage lib;
+	CSCLib.CSCStorage lib;
 
 	function SplitCoin(address[] members, uint[] ppms, address refer) public {
 		lib.dev_fee = 2500;
@@ -15,14 +15,14 @@ contract SplitCoin {
 	}
 
 	function () public payable {
-		lib.pay();
+		lib.payAll();
 	}
 
 	function developer() public view returns(address) {
 		return lib.developer;
 	}
 
-	function splits(uint index) public view returns(SCLib.Split) {
+	function splits(uint index) public view returns(CSCLib.Split) {
 		return lib.splits[index];
 	}
 

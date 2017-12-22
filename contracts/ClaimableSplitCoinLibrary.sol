@@ -3,7 +3,10 @@ import "./SplitCoin.sol";
 
 library CSCLib {
 
-	using SCLib for SCLib.SplitStorage;
+	struct Split {
+		address to;
+		uint ppm;
+	}
 
 	struct CSCStorage {
 		mapping(address => uint) lastUserClaim;
@@ -13,10 +16,49 @@ library CSCLib {
 		address developer;
 		uint dev_fee;
 		uint refer_fee;
-		SCLib.Split[] splits;
+		Split[] splits;
 		mapping(address => uint) userSplit;
+	}
 
-		SCLib.SplitStorage lib;
+	event SplitTransfer(address to, uint amount, uint balance);
+
+	function init(CSCStorage storage self,  address[] members, uint[] ppms, address refer) internal {
+		// TODO: make sure referer is a splitcoin contract
+		uint shift_amt = self.dev_fee / members.length;
+		if(refer != 0x0){
+			addSplit(self, Split({to: self.developer, ppm: self.dev_fee - self.refer_fee}));
+			addSplit(self, Split({to: refer, ppm: self.refer_fee}));
+		} else {
+			addSplit(self, Split({to: self.developer, ppm: self.dev_fee}));
+		}
+
+		for(uint index = 0; index < members.length; index++) {
+			addSplit(self, Split({to: members[index], ppm: ppms[index] - shift_amt}));
+		}
+	}
+
+	function addSplit(CSCStorage storage self, Split newSplit) internal {
+		require(newSplit.ppm > 0);
+		uint index = self.userSplit[newSplit.to];
+		if(index > 0) {
+			newSplit.ppm += self.splits[index].ppm;
+			self.splits[index] = newSplit;
+		} else {
+			self.userSplit[newSplit.to] = self.splits.length;
+			self.splits.push(newSplit);
+		}
+	}
+
+	function payAll(CSCStorage storage self) internal {
+		for(uint index = 0; index < self.splits.length; index++) {
+			uint value = (msg.value) * self.splits[index].ppm / 1000000.00;
+			require(self.splits[index].to.call.gas(60000).value(value)());
+			SplitTransfer(self.splits[index].to, value, this.balance);
+		}
+	}
+
+	function getSplitCount(CSCStorage storage self) internal view returns (uint count) {
+		return self.splits.length;
 	}
 
 	function claimFor(CSCStorage storage self, address user) internal {
@@ -24,8 +66,10 @@ library CSCLib {
 		uint sum = getClaimableBalanceFor(self, user);
 		uint splitIndex = self.userSplit[user];
 		self.lastUserClaim[user] = self.deposits.length;
-		require(self.splits[splitIndex].to.call.gas(60000).value(sum)());
-		SplitTransfer(self.splits[splitIndex].to, sum, this.balance);
+		if(sum > 0) {
+			require(self.splits[splitIndex].to.call.gas(60000).value(sum)());
+			SplitTransfer(self.splits[splitIndex].to, sum, this.balance);
+		}
 	}
 
 	function claim(CSCStorage storage self)  internal {
@@ -51,14 +95,14 @@ library CSCLib {
 	}
 
 	function transfer(CSCStorage storage self, address to, uint ppm) internal {
+		require(self.userSplit[msg.sender] == getSplitCount(self));
+		require(self.userSplit[to] == getSplitCount(self));
+		// neither user can have a pending balance to use transfer
 		uint splitIndex = self.userSplit[msg.sender];
-		if(splitIndex > 0 && self.splits[splitIndex].to == msg.sender && self.splits[splitIndex].ppm > ppm) {
-			claimFor(self, to);
-			claimFor(self, msg.sender);
-			// neither user can have a pending balance to use transfer
+		if(splitIndex > 0 && self.splits[splitIndex].to == msg.sender && self.splits[splitIndex].ppm >= ppm) {
 			self.lastUserClaim[to] = self.lastUserClaim[msg.sender];
 			self.splits[splitIndex].ppm -= ppm;
-			self.lib.addSplit(SCLib.Split({to: to, ppm: ppm}));
+			addSplit(self, Split({to: to, ppm: ppm}));
 		}
 	}
 
@@ -66,11 +110,9 @@ library CSCLib {
 		if(self.isClaimable) {
 			self.deposits.push(msg.value);
 		} else {
-			self.lib.pay();
+			payAll(self);
 		}
 	}
-
-	event SplitTransfer(address to, uint amount, uint balance);
 }
 
 
