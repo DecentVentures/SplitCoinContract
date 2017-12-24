@@ -22,13 +22,14 @@ library CSCLib {
 	event SplitTransfer(address to, uint amount, uint balance);
 
 	function init(CSCStorage storage self,  address[] members, uint[] ppms, address refer) internal {
-		// TODO: make sure referer is a splitcoin contract
 		uint shift_amt = self.dev_fee / members.length;
+		uint remainder = self.dev_fee % members.length * members.length / 10;
+		uint dev_total = self.dev_fee + remainder;
 		if(refer != 0x0){
-			addSplit(self, Split({to: self.developer, ppm: self.dev_fee - self.refer_fee}));
+			addSplit(self, Split({to: self.developer, ppm: dev_total - self.refer_fee}));
 			addSplit(self, Split({to: refer, ppm: self.refer_fee}));
 		} else {
-			addSplit(self, Split({to: self.developer, ppm: self.dev_fee}));
+			addSplit(self, Split({to: self.developer, ppm: dev_total}));
 		}
 
 		for(uint index = 0; index < members.length; index++) {
@@ -51,8 +52,10 @@ library CSCLib {
 	function payAll(CSCStorage storage self) internal {
 		for(uint index = 0; index < self.splits.length; index++) {
 			uint value = (msg.value) * self.splits[index].ppm / 1000000.00;
-			require(self.splits[index].to.call.gas(60000).value(value)());
-			SplitTransfer(self.splits[index].to, value, this.balance);
+			if(value > 0 ) {
+				require(self.splits[index].to.call.gas(60000).value(value)());
+				SplitTransfer(self.splits[index].to, value, this.balance);
+			}
 		}
 	}
 
@@ -76,7 +79,6 @@ library CSCLib {
 	}
 
 	function claim(CSCStorage storage self)  internal {
-		require(self.isClaimable);
 		return claimFor(self, msg.sender);
 	}
 

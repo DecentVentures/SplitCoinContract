@@ -8,9 +8,9 @@ var splitcoinJson = require('../build/contracts/ClaimableSplitCoin.json');
 contract('ClaimableSplitCoin', (accounts) => {
   let splitCoinContractAddr = null;
   let splitCoinSplits = [];
+  let factory = null;
 
   it("should be able to deploy a ClaimableSplitCoin via factory", () => {
-    let factory = null;
     return SplitCoinFactory.deployed()
       .then((splitFactory) => {
         factory = splitFactory;
@@ -62,8 +62,8 @@ contract('ClaimableSplitCoin', (accounts) => {
     let splitContract = SplitCoin.at(splitCoinContractAddr);
     let ownershipBefore = Number(splitCoinSplits[0].ppm);
     let ownership2Before = Number(splitCoinSplits[1].ppm);
-		let ownershipAfter = null;
-		let ownership2After = null;
+    let ownershipAfter = null;
+    let ownership2After = null;
     console.log('User 1 Ownership Before transfer: ', ownershipBefore);
     console.log('User 2 Ownership Before transfer: ', ownership2Before);
     splitContract
@@ -72,16 +72,16 @@ contract('ClaimableSplitCoin', (accounts) => {
       })
       .then(() => splitContract.splits(1))
       .then((split) => {
-				ownershipAfter = Number(split[1].toFixed());
-				assert.equal(ownershipAfter, ownershipBefore / 2);
-			})
+        ownershipAfter = Number(split[1].toFixed());
+        assert.equal(ownershipAfter, ownershipBefore / 2);
+      })
       .then(() => splitContract.splits(2))
       .then((split) => {
-				ownership2After = Number(split[1].toFixed());
-			 	assert.equal(ownership2After, ownership2Before + ownershipBefore / 2)
-			})
-			.then(()=> console.log('User 1 Ownership Before transfer: ', ownershipBefore, 'Ownership After Transfer: ', ownershipAfter))
-			.then(()=> console.log('User 2 Ownership Before transfer: ', ownership2Before, 'Ownership After Transfer: ', ownership2After))
+        ownership2After = Number(split[1].toFixed());
+        assert.equal(ownership2After, ownership2Before + ownershipBefore / 2)
+      })
+      .then(() => console.log('User 1 Ownership Before transfer: ', ownershipBefore, 'Ownership After Transfer: ', ownershipAfter))
+      .then(() => console.log('User 2 Ownership Before transfer: ', ownership2Before, 'Ownership After Transfer: ', ownership2After))
       .then(() => done());
   });
 
@@ -127,8 +127,8 @@ contract('ClaimableSplitCoin', (accounts) => {
         if (eventRes.args.to == split.to && found.indexOf(split.to) == -1) {
           found.push(split.to);
         } else {
-					console.log('Looking for ', split.to, ' saw: ', eventRes.args.to);
-				}
+          //console.log('Looking for ', split.to, ' saw: ', eventRes.args.to);
+        }
       }
       if (found.length == 2) {
         assert.equal(true, true, "Should fire off transfers for the two users");
@@ -136,7 +136,7 @@ contract('ClaimableSplitCoin', (accounts) => {
         done();
       }
     });
-		console.log('Waiting for two transfers...');
+    console.log('Waiting for two transfers...');
 
     splitContract
       .claim({
@@ -145,5 +145,47 @@ contract('ClaimableSplitCoin', (accounts) => {
       .then(() => splitContract.claim({
         from: accounts[1]
       }));
+  });
+
+  it("should be able to capture remainder with odd number of splits", (done) => {
+    let getAccountPromise = new Promise((resolve, reject) => {
+      web3.eth.getAccounts((err, res) => {
+        if (err) reject(err);
+        else resolve(res);
+      });
+    });
+		let splits = null;
+    getAccountPromise.then((allAcc) => {
+      const MILLION = 1000000;
+      let ninth = MILLION / 9;
+      let ppms = [];
+      for (let i = 1; i < 10; i++) {
+        ppms.push(ninth);
+      }
+      splits = allAcc.slice(0, 9);
+      assert.equal(ppms.length, 9);
+      assert.equal(splits.length, 9);
+      return factory.make(splits, ppms, "0x0", true)
+    })
+      .then((tx) => {
+        let deployedAddr = (tx.logs[0].args._deployed);
+        return deployedAddr;
+      })
+      .then((addr) => {
+        web3.eth.sendTransaction({
+          from: accounts[3],
+          to: addr,
+          value: web3.toWei(1, "ether"),
+        }, async (err, result) => {
+          let ninContractSplit = SplitCoin.at(addr);
+          let developer = "0xaB48Dd4b814EBcb4e358923bd719Cd5cd356eA16";
+          let splitPpm = await ninContractSplit.splits(0);
+					let ppm = Number(splitPpm[1].toFixed());
+          let remainder = (2500 % splits.length) * splits.length / 10;
+          console.log('Remainder from 9 users', remainder);
+          assert.equal(ppm, 2500 + Math.floor(remainder));
+          done();
+        });
+      })
   });
 });
