@@ -31,6 +31,10 @@ contract ClaimableSplitCoin {
 		return (csclib.splits[index].to, csclib.splits[index].ppm);
 	}
 
+	function isClaimable() public view returns (bool) {
+		return csclib.isClaimable;
+	}
+
 	event SplitTransfer(address to, uint amount, uint balance);
 
 	function claimFor(address user) public {
@@ -53,4 +57,3 @@ contract ClaimableSplitCoin {
 		csclib.transfer(to, ppm);
 	}
 }
-
