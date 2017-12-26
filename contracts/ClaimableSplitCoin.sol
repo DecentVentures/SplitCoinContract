@@ -1,70 +1,59 @@
-pragma solidity ^0.4.15;
-import "./SplitCoin.sol";
+pragma solidity ^0.4.18;
+import "./ClaimableSplitCoinLibrary.sol";
 
-contract ClaimableSplitCoin is SplitCoin {
+contract ClaimableSplitCoin {
 
-  mapping(address => uint) lastUserClaim;
-  uint[] deposits;
+	using CSCLib for CSCLib.CSCStorage;
 
-  bool public isClaimable = false;
+	CSCLib.CSCStorage csclib;
 
-  function ClaimableSplitCoin(address[] members, uint[] ppms, address refer, bool claimable)
-  SplitCoin(members, ppms, refer) public {
-    isClaimable = claimable;
-  }
+	function ClaimableSplitCoin(address[] members, uint[] ppms, address refer, bool claimable) public {
+		csclib.isClaimable = claimable;
+		csclib.dev_fee = 2500;
+		csclib.developer = 0xaB48Dd4b814EBcb4e358923bd719Cd5cd356eA16;
+		csclib.refer_fee = 250;
+		csclib.init(members, ppms, refer);
+	}
 
-  modifier claimableMode() {
-    require(isClaimable == true);
-    _;
-  }
+	function () public payable {
+		csclib.pay();
+	}
 
-  function claimFor(address user) claimableMode public {
-    uint sum = getClaimableBalanceFor(user);
-    uint splitIndex = userSplit[user];
-    lastUserClaim[user] = deposits.length;
-    require(splits[splitIndex].to.call.gas(60000).value(sum)());
-    SplitTransfer(splits[splitIndex].to, sum, this.balance);
-  }
+	function developer() public view returns(address) {
+		return csclib.developer;
+	}
 
-  function claim() claimableMode public {
-    return claimFor(msg.sender);
-  }
+	function getSplitCount() public view returns (uint count) {
+		return csclib.getSplitCount();
+	}
 
-  function getClaimableBalanceFor(address user) claimableMode public view returns (uint balance) {
-    uint splitIndex = userSplit[user];
-    uint lastClaimIndex = lastUserClaim[user];
-    uint unclaimed = 0;
-    if(splits[splitIndex].to == user) {
-      for(uint depositIndex = lastClaimIndex; depositIndex < deposits.length; depositIndex++) {
-        uint value = deposits[depositIndex] * splits[splitIndex].ppm / 1000000.00;
-        unclaimed += value;
-      }
-    }
-    return unclaimed;
-  }
+	function splits(uint index) public view returns (address to, uint ppm) {
+		return (csclib.splits[index].to, csclib.splits[index].ppm);
+	}
 
-  function getClaimableBalance() claimableMode public view returns (uint balance) {
-    return getClaimableBalanceFor(msg.sender);
-  }
+	function isClaimable() public view returns (bool) {
+		return csclib.isClaimable;
+	}
 
-  function transfer(address to, uint ppm) public {
-    uint splitIndex = userSplit[msg.sender];
-    if(splitIndex > 0 && splits[splitIndex].to == msg.sender && splits[splitIndex].ppm > ppm) {
-      claimFor(to);
-      claimFor(msg.sender);
-      // neither user can have a pending balance to use transfer
-      lastUserClaim[to] = lastUserClaim[msg.sender];
-      splits[splitIndex].ppm -= ppm;
-      addSplit(Split({to: to, ppm: ppm}));
-    }
-  }
+	event SplitTransfer(address to, uint amount, uint balance);
 
-  function pay() public payable {
-    if(isClaimable) {
-      deposits.push(msg.value);
-    } else {
-      super.pay();
-    }
-  }
+	function claimFor(address user) public {
+		csclib.claimFor(user);
+	}
+
+	function claim() public {
+		csclib.claimFor(msg.sender);
+	}
+
+	function getClaimableBalanceFor(address user) public view returns (uint balance) {
+		return csclib.getClaimableBalanceFor(user);
+	}
+
+	function getClaimableBalance() public view returns (uint balance) {
+		return csclib.getClaimableBalanceFor(msg.sender);
+	}
+
+	function transfer(address to, uint ppm) public {
+		csclib.transfer(to, ppm);
+	}
 }
-

@@ -11,6 +11,21 @@ contract('SplitCoinFactory', (accounts) => {
   it("should deploy a contract with two splits", () => {
     let factory = null;
     return SplitCoinFactory.deployed()
+      .then(async (splitFactory) => {
+        factory = splitFactory;
+        let accounts = web3.eth.accounts;
+        const MILLION = 1000000;
+        let half = MILLION / 2;
+        let gas = await factory.make.estimateGas([accounts[0], accounts[1]], [half, half], "0x0", false);
+				console.log('Deploying takes', gas, 'gas');
+				assert.equal(gas <= 1252000, true, "Deploying should take < 1.252 Mil Gas"); 
+      })
+	});
+
+
+  it("should deploy a contract with two splits", () => {
+    let factory = null;
+    return SplitCoinFactory.deployed()
       .then((splitFactory) => {
         factory = splitFactory;
         let accounts = web3.eth.accounts;
