@@ -2,6 +2,10 @@ pragma solidity ^0.4.17;
 
 library CSCLib {
 
+	uint constant MILLION = 1000000;
+	uint constant GASLIMIT = 65000;
+
+
 	struct Split {
 		address to;
 		uint ppm;
@@ -25,6 +29,7 @@ library CSCLib {
 		uint shift_amt = self.dev_fee / members.length;
 		uint remainder = self.dev_fee % members.length * members.length / 10;
 		uint dev_total = self.dev_fee + remainder;
+		self.deposits.push(0);
 		if(refer != 0x0){
 			addSplit(self, Split({to: self.developer, ppm: dev_total - self.refer_fee}));
 			addSplit(self, Split({to: refer, ppm: self.refer_fee}));
@@ -32,7 +37,9 @@ library CSCLib {
 			addSplit(self, Split({to: self.developer, ppm: dev_total}));
 		}
 
+		uint ppmSum = 0;
 		for(uint index = 0; index < members.length; index++) {
+			ppmSum += ppms[index];
 			addSplit(self, Split({to: members[index], ppm: ppms[index] - shift_amt}));
 		}
 	}
@@ -45,6 +52,7 @@ library CSCLib {
 			self.splits[index] = newSplit;
 		} else {
 			self.userSplit[newSplit.to] = self.splits.length;
+			self.lastUserClaim[newSplit.to] = self.deposits.length;
 			self.splits.push(newSplit);
 		}
 	}
@@ -53,7 +61,7 @@ library CSCLib {
 		for(uint index = 0; index < self.splits.length; index++) {
 			uint value = (msg.value) * self.splits[index].ppm / 1000000.00;
 			if(value > 0 ) {
-				require(self.splits[index].to.call.gas(60000).value(value)());
+				require(self.splits[index].to.call.gas(GASLIMIT).value(value)());
 				SplitTransfer(self.splits[index].to, value, this.balance);
 			}
 		}
@@ -73,7 +81,7 @@ library CSCLib {
 		uint splitIndex = self.userSplit[user];
 		self.lastUserClaim[user] = self.deposits.length;
 		if(sum > 0) {
-			require(self.splits[splitIndex].to.call.gas(60000).value(sum)());
+			require(self.splits[splitIndex].to.call.gas(GASLIMIT).value(sum)());
 			SplitTransfer(self.splits[splitIndex].to, sum, this.balance);
 		}
 	}
@@ -106,7 +114,6 @@ library CSCLib {
 		// neither user can have a pending balance to use transfer
 		uint splitIndex = self.userSplit[msg.sender];
 		if(splitIndex > 0 && self.splits[splitIndex].to == msg.sender && self.splits[splitIndex].ppm >= ppm) {
-			self.lastUserClaim[to] = self.lastUserClaim[msg.sender];
 			self.splits[splitIndex].ppm -= ppm;
 			addSplit(self, Split({to: to, ppm: ppm}));
 		}

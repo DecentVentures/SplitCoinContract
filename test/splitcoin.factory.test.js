@@ -17,10 +17,10 @@ contract('SplitCoinFactory', (accounts) => {
         const MILLION = 1000000;
         let half = MILLION / 2;
         let gas = await factory.make.estimateGas([accounts[0], accounts[1]], [half, half], "0x0", false);
-				console.log('Deploying takes', gas, 'gas');
-				assert.equal(gas <= 1268000, true, "Deploying should take < 1.268 Mil Gas"); 
+        console.log('Deploying takes', gas, 'gas');
+        assert.equal(gas <= 1360000, true, "Deploying should take < 1.36 Mil Gas");
       })
-	});
+  });
 
 
   it("should deploy a contract with two splits", () => {
@@ -34,7 +34,7 @@ contract('SplitCoinFactory', (accounts) => {
         return factory.make([accounts[0], accounts[1]], [half, half], "0x0", false);
       })
       .then((tx) => {
-        return factory.contracts(accounts[0], 0);
+        return tx.logs[0].args._deployed;
       })
       .then((splitCoinAddr) => {
         return web3.eth.contract(splitcoinJson.abi).at(splitCoinAddr);
@@ -70,11 +70,9 @@ contract('SplitCoinFactory', (accounts) => {
         return factory.generateReferralAddress('0x0');
       })
       .then((tx) => {
-        return factory.referralContracts(accounts[0]);
+        return tx.logs[0].args._deployed;
       })
-      .then(async(index) => {
-        let indexNum = index.toFixed();
-        let splitCoinAddr = await factory.contracts(accounts[0], indexNum - 1);
+      .then(async(splitCoinAddr) => {
         return web3.eth.contract(splitcoinJson.abi).at(splitCoinAddr);
       })
       .then(async (splitCoin) => {
