@@ -54,7 +54,7 @@ library CSCLib {
 			sum += ppms[index];
 			addSplit(self, Split({to: members[index], ppm: ppms[index] - shift_amt}));
 		}
-		require(sum == MILLION);
+		require(sum >= MILLION - 1 && sum < MILLION + 1 );
 	}
 
 	function addSplit(CSCStorage storage self, Split newSplit) internal {
