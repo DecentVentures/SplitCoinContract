@@ -6,9 +6,8 @@ contract SplitCoinFactory {
   mapping(address => uint) public referralContracts;
   mapping(address => address) public referredBy;
   mapping(address => address[]) public referrals;
-  address[] public deployed;
   event Deployed (
-    address _deployed
+    address _deployed, address _creator
   );
 
 
@@ -24,8 +23,7 @@ contract SplitCoinFactory {
     }
     address sc = new ClaimableSplitCoin(users, ppms, referContract, claimable);
     contracts[msg.sender].push(sc);
-    deployed.push(sc);
-    Deployed(sc);
+    Deployed(sc, msg.sender);
     return sc;
   }
 
