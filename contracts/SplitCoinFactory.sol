@@ -2,42 +2,45 @@ pragma solidity ^0.4.15;
 import "./ClaimableSplitCoin.sol";
 
 contract SplitCoinFactory {
-  mapping(address => address[]) public contracts;
-  mapping(address => uint) public referralContracts;
-  mapping(address => address) public referredBy;
-  mapping(address => address[]) public referrals;
-  event Deployed (
-    address _deployed, address _creator
-  );
+	mapping(address => address) public referralContracts;
+	mapping(address => address) public referredBy;
+	event Deployed (address deployed, address creator, address refer);
+	event Referral (address refer, address referred);
 
 
-  function make(address[] users, uint[] ppms, address refer, bool claimable) public returns (address) {
-    address referContract = referredBy[msg.sender];
-    if(refer != 0x0 && referContract == 0x0 && contracts[refer].length > 0 ) {
-      uint referContractIndex = referralContracts[refer] - 1;
-      if(referContractIndex >= 0 && refer != msg.sender) {
-        referContract = contracts[refer][referContractIndex];
-        referredBy[msg.sender] = referContract;
-        referrals[refer].push(msg.sender);
-      }
-    }
-    address sc = new ClaimableSplitCoin(users, ppms, referContract, claimable);
-    contracts[msg.sender].push(sc);
-    Deployed(sc, msg.sender);
-    return sc;
-  }
 
-  function generateReferralAddress(address refer) public returns (address) {
-    uint[] memory ppms = new uint[](1);
-    address[] memory users = new address[](1);
-    ppms[0] = 1000000;
-    users[0] = msg.sender;
+	function make(address[] users, uint[] ppms, address refer, bool claimable) public returns (address) {
+		address referContract = referredBy[msg.sender];
 
-    address referralContract = make(users, ppms, refer, true);
-    if(referralContract != 0x0) {
-      uint index = contracts[msg.sender].length;
-      referralContracts[msg.sender] = index;
-    }
-    return referralContract;
-  }
+		if(referContract == 0x0 && refer != 0x0) {
+			//new referral
+			referContract = handleReferral(msg.sender, refer);
+		}
+		// create split contract
+		address sc = new ClaimableSplitCoin(users, ppms, referContract, claimable);
+		Deployed(sc, msg.sender, referContract);
+		return sc;
+	}
+
+	function handleReferral(address user, address referrer) internal returns (address) {
+		address referContract = referralContracts[referrer];
+		if(referContract != 0x0 && referrer != user) {
+			referredBy[user] = referrer;
+			Referral(referrer, user);
+		}
+		return referContract;
+	}
+
+	function generateReferralAddress(address refer) public returns (address) {
+		uint[] memory ppms = new uint[](1);
+		address[] memory users = new address[](1);
+		ppms[0] = 1000000;
+		users[0] = msg.sender;
+
+		address referralContract = make(users, ppms, refer, true);
+		if(referralContract != 0x0) {
+			referralContracts[msg.sender] = referralContract;
+		}
+		return referralContract;
+	}
 }

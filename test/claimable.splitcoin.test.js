@@ -20,7 +20,7 @@ contract('ClaimableSplitCoin', (accounts) => {
         return factory.make([accounts[0], accounts[1]], [half, half], "0x0", true);
       })
       .then((tx) => {
-        return factory.contracts(accounts[0], 0);
+        return tx.logs[0].args.deployed;
       })
       .then((splitCoinAddr) => {
         splitCoinContractAddr = splitCoinAddr;
@@ -168,7 +168,7 @@ contract('ClaimableSplitCoin', (accounts) => {
       return factory.make(splits, ppms, "0x0", true)
     })
       .then((tx) => {
-        let deployedAddr = (tx.logs[0].args._deployed);
+        let deployedAddr = (tx.logs[0].args.deployed);
         return deployedAddr;
       })
       .then((addr) => {
