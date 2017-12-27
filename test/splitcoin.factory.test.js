@@ -18,7 +18,7 @@ contract('SplitCoinFactory', (accounts) => {
         let half = MILLION / 2;
         let gas = await factory.make.estimateGas([accounts[0], accounts[1]], [half, half], "0x0", false);
         console.log('Deploying takes', gas, 'gas');
-        assert.equal(gas <= 1360000, true, "Deploying should take < 1.36 Mil Gas");
+        assert.equal(gas <= 1370000, true, "Deploying should take < 1.37 Mil Gas");
       })
   });
 
