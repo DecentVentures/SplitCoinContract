@@ -3,7 +3,9 @@ pragma solidity ^0.4.17;
 library CSCLib {
 
 	uint constant MILLION = 1000000;
-	uint constant GASLIMIT = 60000;
+	uint constant GASLIMIT = 65000;
+
+
 	struct Split {
 		address to;
 		uint ppm;
@@ -39,6 +41,7 @@ library CSCLib {
 		uint shift_amt = self.dev_fee / members.length;
 		uint remainder = self.dev_fee % members.length * members.length / 10;
 		uint dev_total = self.dev_fee + remainder;
+		self.deposits.push(0);
 		if(refer != 0x0){
 			addSplit(self, Split({to: self.developer, ppm: dev_total - self.refer_fee}));
 			addSplit(self, Split({to: refer, ppm: self.refer_fee}));
