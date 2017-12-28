@@ -7,9 +7,7 @@ contract SplitCoinFactory {
   mapping(address => address) public referredBy;
   mapping(address => address[]) public referrals;
   address[] public deployed;
-  event Deployed (
-    address _deployed
-  );
+  event Deployed (address _deployed);
 
 
   function make(address[] users, uint[] ppms, address refer, bool claimable) public returns (address) {
