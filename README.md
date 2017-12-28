@@ -14,8 +14,14 @@ Claimable contracts follow the withdraw pattern, and the user must make a call t
 Non-Claimable contracts receive the funds as soon as the contract receives the funds.
 
 ## Examples
+```
 // A 50/50 split where each user must claim their funds
+
 SplitCoinFactory.make(["0x123", "0x124"], [500000, 500000], "0x0", true);
 
+
 // A 50/50 split where each user receives the funds as soon as the contract receives them
+
 SplitCoinFactory.make(["0x123", "0x124"], [500000, 500000], "0x0", false);
+
+```
