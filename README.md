@@ -6,11 +6,17 @@ The SplitCoinFactory deploys ClaimableSplitCoin contracts which use the SplitCoi
 
 ## Deploying SplitCoin contracts
 The factory has a make method that takes in an array of addresses and an array of uints.
+
 Each user address is associated with the uint at the same index.
+
 Each user should receive N/1000000, where N is their corresponding uint.
+
 Each deployed contract can have a referrer. The referrer receives a portion of the dev fee.
+
 Each contract can be claimable, or not. 
+
 Claimable contracts follow the withdraw pattern, and the user must make a call to receive their funds
+
 Non-Claimable contracts receive the funds as soon as the contract receives the funds.
 
 ## Examples
