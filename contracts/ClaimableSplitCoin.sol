@@ -12,7 +12,7 @@ contract ClaimableSplitCoin {
 		csclib.dev_fee = 2500;
 		csclib.developer = 0xaB48Dd4b814EBcb4e358923bd719Cd5cd356eA16;
 		csclib.refer_fee = 250;
-		csclib.init(members, ppms, refer);
+		csclib.init(members, ppms, refer, msg.sender);
 	}
 
 	function () public payable {
@@ -53,7 +53,7 @@ contract ClaimableSplitCoin {
 		return csclib.getClaimableBalanceFor(msg.sender);
 	}
 
-	function transfer(address to, uint ppm) public {
-		csclib.transfer(to, ppm);
+	function transfer(address to, uint ppm, address newOwner, address toTransfer) public {
+		csclib.transfer(to, ppm, newOwner, msg.sender, toTransfer);
 	}
 }
