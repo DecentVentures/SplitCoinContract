@@ -20,10 +20,10 @@ contract SplitCoinFactory {
         referrals[refer].push(msg.sender);
       }
     }
-    address sc = new ClaimableSplitCoin(users, ppms, referContract, claimable);
+    address sc = new ClaimableSplitCoin(users, ppms, referContract, claimable, msg.sender);
     contracts[msg.sender].push(sc);
     deployed.push(sc);
-    Deployed(sc);
+    emit Deployed(sc);
     return sc;
   }
 

@@ -7,12 +7,12 @@ contract ClaimableSplitCoin {
 
 	CSCLib.CSCStorage csclib;
 
-	function ClaimableSplitCoin(address[] members, uint[] ppms, address refer, bool claimable) public {
+	function ClaimableSplitCoin(address[] members, uint[] ppms, address refer, bool claimable, address owner) public {
 		csclib.isClaimable = claimable;
 		csclib.dev_fee = 2500;
 		csclib.developer = 0xaB48Dd4b814EBcb4e358923bd719Cd5cd356eA16;
 		csclib.refer_fee = 250;
-		csclib.init(members, ppms, refer, msg.sender);
+		csclib.init(members, ppms, refer, owner);
 	}
 
 	function () public payable {
@@ -30,6 +30,11 @@ contract ClaimableSplitCoin {
 	function splits(uint index) public view returns (address to, uint ppm) {
 		return (csclib.splits[index].to, csclib.splits[index].ppm);
 	}
+
+	function ownership(address owner, uint index) public view returns (uint ppm) {
+		return (csclib.ownership[owner][index]);
+	}
+
 
 	function isClaimable() public view returns (bool) {
 		return csclib.isClaimable;

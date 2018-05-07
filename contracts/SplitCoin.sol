@@ -11,7 +11,7 @@ contract SplitCoin {
 		lib.dev_fee = 2500;
 		lib.developer = 0xaB48Dd4b814EBcb4e358923bd719Cd5cd356eA16;
 		lib.refer_fee = 250;
-		lib.init(members, ppms, refer);
+		lib.init(members, ppms, refer, msg.sender);
 	}
 
 	function () public payable {
@@ -22,8 +22,8 @@ contract SplitCoin {
 		return lib.developer;
 	}
 
-	function splits(uint index) public view returns(CSCLib.Split) {
-		return lib.splits[index];
+	function splits(uint index) public view returns(address to, uint ppm) {
+		return (lib.splits[index].to, lib.splits[index].ppm);
 	}
 
 	function getSplitCount() public view returns (uint count) {
